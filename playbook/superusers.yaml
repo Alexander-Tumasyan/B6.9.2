@@ -1,0 +1,38 @@
+---
+- name: Create group and users
+  hosts: test
+  gather_facts: true
+  become: yes
+  tasks:
+   - name: Ensure group "superusers" exists
+     ansible.builtin.group:
+       name: superusers
+       state: present
+       
+   - name: Add the user 'user2' with a bash shell, appending the group 'superusers'
+     ansible.builtin.user:
+       name: user2 
+       shell: /bin/bash
+       groups: superusers
+       append: yes
+
+   - name: Add the user 'user3' with a bash shell, appending the group 'superusers'
+     ansible.builtin.user:
+       name: user3 
+       shell: /bin/bash
+       groups: superusers
+       append: yes
+
+   - name: Add a line to a file /etc/sudoers
+     ansible.builtin.lineinfile:
+       path: /etc/sudoers
+       line: '%superusers ALL=(ALL:ALL) ALL'
+       create: yes
+
+   - name: Validate the sudoers file before saving
+     ansible.builtin.lineinfile:
+       path: /etc/sudoers
+       state: present
+       regexp: '^%superusers ALL='
+       line: '%superusers ALL=(ALL:ALL) ALL'
+       validate: /usr/sbin/visudo -cf %s

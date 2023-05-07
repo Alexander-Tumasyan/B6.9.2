@@ -1,0 +1,4 @@
+---
+# vars file for nginx_phpfpm
+nginx_config_template_path: /home/alex/Ansible/playbooks/B6.9.2/roles/nginx_phpfpm/templates/default.conf.j2
+nginx_config_path: /etc/nginx/sites-available/default

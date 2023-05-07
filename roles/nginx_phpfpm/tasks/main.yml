@@ -1,0 +1,57 @@
+---
+# tasks file for nginx_phpfpm
+  - name: install nginx
+    apt:
+      name: nginx
+      state: present
+
+  - name: install php-fpm
+    apt:
+      name: php-fpm
+      state: present
+
+  - name: edit default.conf to use php-fpm
+    template: 
+      src: "{{ nginx_config_template_path }}"
+      dest: "{{ nginx_config_path }}"
+      remote_src: yes
+
+  - name: Creating index.php
+    file:
+      path: "/var/www/html/index.php"
+      state: touch
+
+  - name: Add a line to a file /var/www/html/index.php
+    ansible.builtin.lineinfile:
+      path: "/var/www/html/index.php"
+      line: <?php phpinfo()?>
+      create: yes
+    notify: 
+      restart nginx
+      restart php-fpm  
+
+  - name: Create a directory if it does not exist
+    ansible.builtin.file:
+      path: /opt/nginx/ansible
+      state: directory
+      mode: '0755'
+
+  - name: Copy DocumentRoot with owner and permissions
+    ansible.builtin.copy:
+      src: /var/www/html/index.nginx-debian.html
+      dest: /opt/nginx/ansible/index.nginx-debian.html
+      owner: root
+      group: root
+      mode: '0644'
+
+  - name: Replace a root path in sites-avalaible
+    ansible.builtin.lineinfile:
+      path: "/etc/nginx/sites-available/default"
+      search_string: 'root /var/www/html;'
+      line: root /opt/nginx/ansible;
+      owner: root
+      group: root
+      mode: '0644'
+    notify:
+      - restart nginx
+      - restart php-fpm  
